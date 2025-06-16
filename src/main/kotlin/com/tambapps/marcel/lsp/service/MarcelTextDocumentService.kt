@@ -1,5 +1,6 @@
 package com.tambapps.marcel.lsp.service
 
+import com.tambapps.marcel.lsp.lang.MarcelCodeHighlighter
 import com.tambapps.marcel.lsp.lang.MarcelSemanticCompiler
 import com.tambapps.marcel.lsp.lang.SemanticResult
 import org.eclipse.lsp4j.CompletionItem
@@ -11,6 +12,8 @@ import org.eclipse.lsp4j.DidCloseTextDocumentParams
 import org.eclipse.lsp4j.DidOpenTextDocumentParams
 import org.eclipse.lsp4j.DidSaveTextDocumentParams
 import org.eclipse.lsp4j.InsertTextFormat
+import org.eclipse.lsp4j.SemanticTokens
+import org.eclipse.lsp4j.SemanticTokensParams
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.TextDocumentService
 import java.util.concurrent.CompletableFuture
@@ -18,9 +21,15 @@ import java.util.concurrent.ConcurrentHashMap
 
 class MarcelTextDocumentService(
   private val marcelSemanticCompiler: MarcelSemanticCompiler,
+  private val highlighter: MarcelCodeHighlighter
 ): TextDocumentService {
 
   private val semanticResults = ConcurrentHashMap<String, CompletableFuture<SemanticResult>>()
+
+  override fun semanticTokensFull(params: SemanticTokensParams): CompletableFuture<SemanticTokens> {
+    val semanticResultFuture = semanticResults[params.textDocument?.uri] ?: return CompletableFuture.completedFuture(SemanticTokens(listOf()))
+    return semanticResultFuture.thenApply { semanticResult -> SemanticTokens(highlighter.computeHighlight(semanticResult)) }
+  }
 
   override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> {
     val uri = position.textDocument?.uri
@@ -45,6 +54,7 @@ class MarcelTextDocumentService(
       return@thenApply Either.forLeft(completionItems);
     }
   }
+
   override fun didOpen(params: DidOpenTextDocumentParams) {
     val uri = params.textDocument?.uri
     val text = params.textDocument?.text

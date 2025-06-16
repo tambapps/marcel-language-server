@@ -7,6 +7,7 @@ import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.boolean
 import com.tambapps.marcel.compiler.CompilerConfiguration
+import com.tambapps.marcel.lsp.lang.MarcelCodeHighlighter
 import com.tambapps.marcel.lsp.lang.MarcelSemanticCompiler
 import com.tambapps.marcel.lsp.service.MarcelTextDocumentService
 import com.tambapps.marcel.lsp.service.MarcelWorkspaceService
@@ -42,7 +43,7 @@ object StdioLauncher {
 
   private fun startServer(`in`: InputStream, out: OutputStream, marcelSemanticCompiler: MarcelSemanticCompiler) {
     // Initialize the HelloLanguageServer
-    val textDocumentService = MarcelTextDocumentService(marcelSemanticCompiler)
+    val textDocumentService = MarcelTextDocumentService(marcelSemanticCompiler, MarcelCodeHighlighter())
     val workspaceService = MarcelWorkspaceService()
     val languageServer = MarcelLanguageServer(textDocumentService, workspaceService)
     // Create JSON RPC launcher for HelloLanguageServer instance.
