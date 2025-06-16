@@ -1,6 +1,7 @@
 package com.tambapps.marcel.lsp.service
 
 import com.tambapps.marcel.lsp.lang.MarcelCodeHighlighter
+import com.tambapps.marcel.lsp.lang.MarcelDiagnosticGenerator
 import com.tambapps.marcel.lsp.lang.MarcelSemanticCompiler
 import com.tambapps.marcel.lsp.lang.SemanticResult
 import org.eclipse.lsp4j.CompletionItem
@@ -12,9 +13,13 @@ import org.eclipse.lsp4j.DidCloseTextDocumentParams
 import org.eclipse.lsp4j.DidOpenTextDocumentParams
 import org.eclipse.lsp4j.DidSaveTextDocumentParams
 import org.eclipse.lsp4j.InsertTextFormat
+import org.eclipse.lsp4j.MessageParams
+import org.eclipse.lsp4j.MessageType
+import org.eclipse.lsp4j.PublishDiagnosticsParams
 import org.eclipse.lsp4j.SemanticTokens
 import org.eclipse.lsp4j.SemanticTokensParams
 import org.eclipse.lsp4j.jsonrpc.messages.Either
+import org.eclipse.lsp4j.services.LanguageClient
 import org.eclipse.lsp4j.services.TextDocumentService
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
@@ -25,6 +30,8 @@ class MarcelTextDocumentService(
 ): TextDocumentService {
 
   private val semanticResults = ConcurrentHashMap<String, CompletableFuture<SemanticResult>>()
+  private val diagnosticGenerator = MarcelDiagnosticGenerator()
+  var languageClient: LanguageClient? = null
 
   override fun semanticTokensFull(params: SemanticTokensParams): CompletableFuture<SemanticTokens> {
     val semanticResultFuture = semanticResults[params.textDocument?.uri] ?: return CompletableFuture.completedFuture(SemanticTokens(listOf()))
@@ -59,7 +66,7 @@ class MarcelTextDocumentService(
     val uri = params.textDocument?.uri
     val text = params.textDocument?.text
     if (uri != null && text != null) {
-      semanticResults[uri] = CompletableFuture.supplyAsync { marcelSemanticCompiler.apply(text) }
+      updateSemanticResults(uri = uri, text = text)
     }
   }
 
@@ -68,7 +75,21 @@ class MarcelTextDocumentService(
     val changes = params.contentChanges
     if (uri != null && !changes.isNullOrEmpty()) {
       val text = changes.last().text
-      semanticResults[uri] = CompletableFuture.supplyAsync { marcelSemanticCompiler.apply(text) }
+      updateSemanticResults(uri = uri, text = text)
+    }
+  }
+
+  private fun updateSemanticResults(uri: String, text: String) {
+    val future = CompletableFuture.supplyAsync { marcelSemanticCompiler.apply(text) }
+    semanticResults[uri] = future
+    val languageClient = this.languageClient
+    if (languageClient != null) {
+      future.thenAcceptAsync { semanticResult ->
+        val diagnostics = diagnosticGenerator.generate(semanticResult)
+        languageClient.publishDiagnostics(PublishDiagnosticsParams(uri, diagnostics))
+        // TODO remove this
+        languageClient.logMessage(MessageParams(MessageType.Error, "Sent diagnostics of ${diagnostics.size}: ${diagnostics.joinToString(", ")}"))
+      }
     }
   }
 

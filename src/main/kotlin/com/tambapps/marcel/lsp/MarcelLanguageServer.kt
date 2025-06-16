@@ -7,6 +7,8 @@ import com.tambapps.marcel.lsp.service.MarcelWorkspaceService
 import org.eclipse.lsp4j.CompletionOptions
 import org.eclipse.lsp4j.InitializeParams
 import org.eclipse.lsp4j.InitializeResult
+import org.eclipse.lsp4j.MessageParams
+import org.eclipse.lsp4j.MessageType
 import org.eclipse.lsp4j.SemanticTokensLegend
 import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions
 import org.eclipse.lsp4j.ServerCapabilities
@@ -26,7 +28,6 @@ class MarcelLanguageServer(
 ): LanguageServer, LanguageClientAware {
 
   private var exitCode = 1
-  private lateinit var languageClient: LanguageClient
 
   override fun initialize(params: InitializeParams?): CompletableFuture<InitializeResult?>? {
     // Set the capabilities of the LS to inform the client.
@@ -65,6 +66,8 @@ class MarcelLanguageServer(
   override fun getWorkspaceService() = workspaceService
 
   override fun connect(client: LanguageClient) {
-    this.languageClient = client
+    textDocumentService.languageClient = client
+    // TODO change log level
+    client.logMessage(MessageParams(MessageType.Error, "Connected to Marcel LSP Server"))
   }
 }

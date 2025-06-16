@@ -23,32 +23,31 @@ class MarcelSemanticCompiler(
   val lexer = MarcelLexer()
 
   fun apply(text: String): SemanticResult {
-    val textHashCode = text.hashCode()
     val tokens = try {
       lexer.lex(text)
-    } catch (_: MarcelLexerException) {
-      return SemanticResult(text = text)
+    } catch (e: MarcelLexerException) {
+      return SemanticResult(text = text, lexerError = e)
     }
 
     val parser = MarcelParser(tokens)
 
     val cst = try {
       parser.parse()
-    } catch (_: MarcelParserException) {
-      return SemanticResult(text = text, tokens = tokens)
+    } catch (e: MarcelParserException) {
+      return SemanticResult(text = text, tokens = tokens, parserError = e)
     }
     val classLoader = URLMarcelClassLoader()
     val symbolResolver = MarcelSymbolResolver(classLoader)
     try {
       handleDumbbells(classLoader, cst)
-    } catch (_: MarcelCompilerException) {
+    } catch (e: MarcelCompilerException) {
       return SemanticResult(text = text, tokens = tokens)
     }
 
     val ast = try {
       applySemantic(symbolResolver, cst)
-    } catch (_: MarcelSemanticException) {
-      return SemanticResult(text = text, tokens = tokens)
+    } catch (e: MarcelSemanticException) {
+      return SemanticResult(text = text, tokens = tokens, semanticError = e)
     }
     return SemanticResult(text = text, tokens = tokens, ast = ast)
   }
