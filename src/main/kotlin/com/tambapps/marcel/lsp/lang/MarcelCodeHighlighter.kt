@@ -61,7 +61,7 @@ class MarcelCodeHighlighter() {
         TokenType.OPEN_CHAR_QUOTE, TokenType.CLOSING_CHAR_QUOTE,
         TokenType.OPEN_REGEX_QUOTE, TokenType.CLOSING_REGEX_QUOTE,
         TokenType.OPEN_SIMPLE_QUOTE, TokenType.CLOSING_SIMPLE_QUOTE -> Style.STRING
-        //TokenType.SHORT_TEMPLATE_ENTRY_START, TokenType.LONG_TEMPLATE_ENTRY_START, TokenType.LONG_TEMPLATE_ENTRY_END -> style.stringTemplate
+        TokenType.SHORT_TEMPLATE_ENTRY_START, TokenType.LONG_TEMPLATE_ENTRY_START, TokenType.LONG_TEMPLATE_ENTRY_END -> Style.TEMPLATE_ENTRY
         else -> tokenMap[token]
       } ?: continue
       val deltaLine = token.line - lastLine
@@ -82,6 +82,7 @@ data class Style(val tokenType: Int, val tokenModifiers: Int) {
     val NUMBER = Style(LspTokenType.number, emptyList())
     val KEYWORD = Style(LspTokenType.keyword, emptyList())
     val COMMENT = Style(LspTokenType.comment, emptyList())
+    val TEMPLATE_ENTRY = Style(LspTokenType.keyword, emptyList())
 
   }
   constructor(
