@@ -96,6 +96,31 @@
       <version>${marcel.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.tambapps.marcel</groupId>
+      <artifactId>marcel-clargs</artifactId>
+      <version>${marcel.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.tambapps.marcel</groupId>
+      <artifactId>marcel-extensions</artifactId>
+      <version>${marcel.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.tambapps.marcel</groupId>
+      <artifactId>marcel-json</artifactId>
+      <version>${marcel.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.tambapps.marcel</groupId>
+      <artifactId>marcel-yaml</artifactId>
+      <version>${marcel.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.tambapps.marcel</groupId>
+      <artifactId>marcel-csv</artifactId>
+      <version>${marcel.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.github.ajalt.clikt</groupId>
       <artifactId>clikt-jvm</artifactId>
       <version>5.0.3</version>
