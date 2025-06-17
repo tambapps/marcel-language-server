@@ -17,27 +17,38 @@ class MarcelDiagnosticGenerator {
   }
   fun generate(result: SemanticResult)= mutableListOf<Diagnostic>().apply {
     result.lexerError?.let { lexerError ->
-      add(diagnostic(lexerError.line, lexerError.column, lexerError.message))
+      add(diagnostic(lexerError.line, lexerError.column, lexerError.column, lexerError.message))
     }
     result.parserError?.let { parserError ->
       parserError.errors.forEach { error ->
-        add(diagnostic(error.token.line, error.token.column, error.message))
+        add(diagnostic(error.token.line, error.token.column, error.token.end, error.message))
       }
     }
     result.semanticError?.let { semanticError ->
       semanticError.errors.forEach { error ->
-        add(diagnostic(error.token.line, error.token.column, error.message))
+        add(diagnostic(error.token.line, error.token.column, error.token.end, error.message))
       }
     }
   }
 
-  private fun diagnostic(line: Int, column: Int, message: String?): Diagnostic {
+  private fun diagnostic(line: Int, column: Int, end: Int, message: String?): Diagnostic {
+
     return Diagnostic(
-      range(line, column),
-      message ?: "error",
+      range(line, column, end),
+      transformMessage(message),
       DiagnosticSeverity.Error,
       SOURCE
     )
   }
-  private fun range(line: Int, column: Int) = Position(line, column).let { Range(it, it) }
+
+  private fun transformMessage(s: String?): String {
+    return if (s == null) {
+      "error"
+    } else if (s.contains(":")) {
+      s.substring(s.lastIndexOf(":") + 1)
+    } else {
+      s
+    }
+  }
+  private fun range(line: Int, column: Int, end: Int = column) = Range(Position(line, column), Position(line, end))
 }

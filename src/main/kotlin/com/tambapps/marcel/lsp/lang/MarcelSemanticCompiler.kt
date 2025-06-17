@@ -47,7 +47,7 @@ class MarcelSemanticCompiler(
     val ast = try {
       applySemantic(symbolResolver, cst)
     } catch (e: MarcelSemanticException) {
-      return SemanticResult(text = text, tokens = tokens, semanticError = e)
+      return SemanticResult(text = text, tokens = tokens, ast = e.ast, semanticError = e)
     }
     return SemanticResult(text = text, tokens = tokens, ast = ast)
   }

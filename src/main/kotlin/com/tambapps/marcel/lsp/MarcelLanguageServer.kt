@@ -21,7 +21,6 @@ import org.eclipse.lsp4j.services.LanguageServer
 import java.util.concurrent.CompletableFuture
 import kotlin.system.exitProcess
 
-
 class MarcelLanguageServer(
   private val textDocumentService: MarcelTextDocumentService,
   private val workspaceService: MarcelWorkspaceService,

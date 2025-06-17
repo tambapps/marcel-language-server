@@ -13,8 +13,6 @@ import org.eclipse.lsp4j.DidCloseTextDocumentParams
 import org.eclipse.lsp4j.DidOpenTextDocumentParams
 import org.eclipse.lsp4j.DidSaveTextDocumentParams
 import org.eclipse.lsp4j.InsertTextFormat
-import org.eclipse.lsp4j.MessageParams
-import org.eclipse.lsp4j.MessageType
 import org.eclipse.lsp4j.PublishDiagnosticsParams
 import org.eclipse.lsp4j.SemanticTokens
 import org.eclipse.lsp4j.SemanticTokensParams
@@ -87,8 +85,6 @@ class MarcelTextDocumentService(
       future.thenAcceptAsync { semanticResult ->
         val diagnostics = diagnosticGenerator.generate(semanticResult)
         languageClient.publishDiagnostics(PublishDiagnosticsParams(uri, diagnostics))
-        // TODO remove this
-        languageClient.logMessage(MessageParams(MessageType.Error, "Sent diagnostics of ${diagnostics.size}: ${diagnostics.joinToString(", ")}"))
       }
     }
   }

@@ -9,7 +9,7 @@ import com.tambapps.marcel.semantic.ast.ModuleNode
 import com.tambapps.marcel.semantic.exception.MarcelSemanticException
 
 data class SemanticResult(
-  val text: String, // TODO may be useless
+  val text: String,
   val tokens: List<LexToken>? = null,
   val cst: SourceFileCstNode? = null,
   val ast: ModuleNode? = null,
