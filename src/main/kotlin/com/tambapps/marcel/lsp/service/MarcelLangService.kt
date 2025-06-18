@@ -1,21 +1,29 @@
-package com.tambapps.marcel.lsp.lang
+package com.tambapps.marcel.lsp.service
 
+import com.tambapps.marcel.lsp.lang.SemanticResult
+import com.tambapps.marcel.lsp.lang.visitor.GenerateHoverVisitor
+import com.tambapps.marcel.semantic.ast.expression.ExpressionNode
 import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.DiagnosticSeverity
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.Range
 
 /**
- * Computes diagnostics, allowing to expose errors, warnings, info on the code
+ * Service allowing to convert Marcel Lang object into lsp4j objects. It is responsible for
+ * - Computes diagnostics, allowing to expose errors, warnings, info on the code
+ * - Computing hover information
+ * - ...
  *
- * @constructor Create empty Marcel diagnostic generator
  */
-class MarcelDiagnosticGenerator {
+class MarcelLangService {
 
   companion object {
-    private const val SOURCE = "compiler"
+    private const val DIAGNOSTIC_SOURCE = "compiler"
   }
-  fun generate(result: SemanticResult)= mutableListOf<Diagnostic>().apply {
+
+  fun generateHover(node: ExpressionNode) = node.accept(GenerateHoverVisitor())
+
+  fun generateDiagnostic(result: SemanticResult) = mutableListOf<Diagnostic>().apply {
     result.lexerError?.let { lexerError ->
       add(diagnostic(lexerError.line, lexerError.column, lexerError.column, lexerError.message))
     }
@@ -37,7 +45,7 @@ class MarcelDiagnosticGenerator {
       range(line, column, end),
       transformMessage(message),
       DiagnosticSeverity.Error,
-      SOURCE
+      DIAGNOSTIC_SOURCE
     )
   }
 

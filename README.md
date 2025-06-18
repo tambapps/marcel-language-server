@@ -5,14 +5,13 @@ A Language Server Protocol (LSP) implementation for the [**Marcel**](https://tam
 This server enables smart code features in any editor that supports LSP (like Neovim, VSCode, etc.) when editing Marcel files.
 
 
-## ✨ Features
+## ✨ Supported Features
 
 - **Intelligent auto-completion** (`textDocument/completion`)
 - **Semantic highlighting** (`textDocument/semanticTokens/full`)
 - **Syntax and semantic diagnostics** (`textDocument/publishDiagnostics`)
+- **Hover information** (`hover`)
 - **Go to definition** (coming soon)
-<!-- - **Hover information** (coming soon) -->
-
 
 ## Neovim
 

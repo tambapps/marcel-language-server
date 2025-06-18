@@ -33,11 +33,13 @@ class MarcelLanguageServer(
     val capabilities = ServerCapabilities().apply {
       // text highlight capabilities
       semanticTokensProvider = SemanticTokensWithRegistrationOptions().apply {
+        // specify supported features
         legend = SemanticTokensLegend(
           LspTokenType.entries.map { it.name },
           LspTokenModifier.entries.map { it.name }
         )
         full = Either.forLeft(true) // supports request on whole document
+        hoverProvider = Either.forLeft(true)
       }
 
       setTextDocumentSync(TextDocumentSyncKind.Full)
