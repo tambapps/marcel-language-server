@@ -3,16 +3,12 @@ package com.tambapps.marcel.lsp.lang
 import com.tambapps.marcel.compiler.AbstractMarcelCompiler
 import com.tambapps.marcel.compiler.CompilerConfiguration
 import com.tambapps.marcel.compiler.exception.MarcelCompilerException
-import com.tambapps.marcel.compiler.transform.SyntaxTreeTransformer
 import com.tambapps.marcel.lexer.MarcelLexer
 import com.tambapps.marcel.lexer.MarcelLexerException
 import com.tambapps.marcel.parser.MarcelParser
 import com.tambapps.marcel.parser.MarcelParserException
-import com.tambapps.marcel.parser.cst.SourceFileCstNode
-import com.tambapps.marcel.semantic.ast.ModuleNode
+import com.tambapps.marcel.semantic.analysis.MarcelSemanticAnalysis
 import com.tambapps.marcel.semantic.exception.MarcelSemanticException
-import com.tambapps.marcel.semantic.extensions.javaType
-import com.tambapps.marcel.semantic.processor.MarcelSemantic
 import com.tambapps.marcel.semantic.processor.symbol.MarcelSymbolResolver
 import marcel.lang.URLMarcelClassLoader
 
@@ -45,31 +41,10 @@ class MarcelSemanticCompiler(
     }
 
     val ast = try {
-      applySemantic(symbolResolver, cst)
+      MarcelSemanticAnalysis.apply(configuration.semanticConfiguration, symbolResolver, cst, "temp.marcel")
     } catch (e: MarcelSemanticException) {
       return SemanticResult(text = text, tokens = tokens, ast = e.ast, semanticError = e)
     }
     return SemanticResult(text = text, tokens = tokens, ast = ast)
-  }
-
-  private fun applySemantic(symbolResolver: MarcelSymbolResolver, cst: SourceFileCstNode): ModuleNode {
-    val semantic = MarcelSemantic(symbolResolver, configuration.scriptClass.javaType, cst, "temp.marcel")
-
-    // defining types
-    defineSymbols(symbolResolver, listOf(semantic))
-
-    // load transformations if any
-    val syntaxTreeTransformer = SyntaxTreeTransformer(configuration, symbolResolver)
-    syntaxTreeTransformer.applyCstTransformations(semantic)
-
-    // apply semantic analysis
-    val ast = semantic.apply()
-
-    // apply transformations if any
-    syntaxTreeTransformer.applyAstTransformations(ast)
-
-    // checks
-    check(ast, symbolResolver)
-    return ast
   }
 }

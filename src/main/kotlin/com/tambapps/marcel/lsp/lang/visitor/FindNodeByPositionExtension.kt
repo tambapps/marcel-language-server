@@ -1,6 +1,5 @@
 package com.tambapps.marcel.lsp.lang.visitor
 
-import com.tambapps.marcel.semantic.ast.AstNode
 import com.tambapps.marcel.semantic.ast.expression.ArrayAccessNode
 import com.tambapps.marcel.semantic.ast.expression.ClassReferenceNode
 import com.tambapps.marcel.semantic.ast.expression.DupNode
@@ -10,7 +9,6 @@ import com.tambapps.marcel.semantic.ast.expression.FunctionCallNode
 import com.tambapps.marcel.semantic.ast.expression.InstanceOfNode
 import com.tambapps.marcel.semantic.ast.expression.JavaCastNode
 import com.tambapps.marcel.semantic.ast.expression.NewInstanceNode
-import com.tambapps.marcel.semantic.ast.expression.PopNode
 import com.tambapps.marcel.semantic.ast.expression.ReferenceNode
 import com.tambapps.marcel.semantic.ast.expression.StringNode
 import com.tambapps.marcel.semantic.ast.expression.SuperConstructorCallNode
@@ -90,8 +88,6 @@ class FindNodeByTokenExtension(
   override fun visit(node: JavaCastNode) = node.expressionNode.accept(this)?: test(node)
 
   override fun visit(node: NewInstanceNode) = testExprs(node.arguments) ?: test(node)
-
-  override fun visit(node: PopNode) = test(node)
 
   override fun visit(node: ReferenceNode) = test(node)
 

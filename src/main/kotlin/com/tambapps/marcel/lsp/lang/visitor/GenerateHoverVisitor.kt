@@ -9,7 +9,6 @@ import com.tambapps.marcel.semantic.ast.expression.FunctionCallNode
 import com.tambapps.marcel.semantic.ast.expression.InstanceOfNode
 import com.tambapps.marcel.semantic.ast.expression.JavaCastNode
 import com.tambapps.marcel.semantic.ast.expression.NewInstanceNode
-import com.tambapps.marcel.semantic.ast.expression.PopNode
 import com.tambapps.marcel.semantic.ast.expression.ReferenceNode
 import com.tambapps.marcel.semantic.ast.expression.StringNode
 import com.tambapps.marcel.semantic.ast.expression.SuperConstructorCallNode
@@ -51,9 +50,9 @@ import com.tambapps.marcel.semantic.ast.expression.operator.OrNode
 import com.tambapps.marcel.semantic.ast.expression.operator.PlusNode
 import com.tambapps.marcel.semantic.ast.expression.operator.RightShiftNode
 import com.tambapps.marcel.semantic.ast.expression.operator.VariableAssignmentNode
-import com.tambapps.marcel.semantic.method.MarcelMethod
-import com.tambapps.marcel.semantic.method.MethodParameter
-import com.tambapps.marcel.semantic.variable.field.MarcelField
+import com.tambapps.marcel.semantic.symbol.method.MarcelMethod
+import com.tambapps.marcel.semantic.symbol.method.MethodParameter
+import com.tambapps.marcel.semantic.symbol.variable.field.MarcelField
 import org.eclipse.lsp4j.MarkupContent
 import org.eclipse.lsp4j.MarkupKind
 
@@ -118,10 +117,6 @@ class GenerateHoverVisitor: ExpressionNodeVisitor<MarkupContent?> {
   }
 
   override fun visit(node: NewInstanceNode): MarkupContent? {
-    return null
-  }
-
-  override fun visit(node: PopNode): MarkupContent? {
     return null
   }
 
