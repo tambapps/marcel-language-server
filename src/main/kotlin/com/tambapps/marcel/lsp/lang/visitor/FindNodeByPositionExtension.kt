@@ -2,6 +2,7 @@ package com.tambapps.marcel.lsp.lang.visitor
 
 import com.tambapps.marcel.semantic.ast.expression.ArrayAccessNode
 import com.tambapps.marcel.semantic.ast.expression.ClassReferenceNode
+import com.tambapps.marcel.semantic.ast.expression.ConditionalExpressionNode
 import com.tambapps.marcel.semantic.ast.expression.DupNode
 import com.tambapps.marcel.semantic.ast.expression.ExprErrorNode
 import com.tambapps.marcel.semantic.ast.expression.ExpressionNode
@@ -16,6 +17,7 @@ import com.tambapps.marcel.semantic.ast.expression.SuperReferenceNode
 import com.tambapps.marcel.semantic.ast.expression.TernaryNode
 import com.tambapps.marcel.semantic.ast.expression.ThisConstructorCallNode
 import com.tambapps.marcel.semantic.ast.expression.ThisReferenceNode
+import com.tambapps.marcel.semantic.ast.expression.YieldExpression
 import com.tambapps.marcel.semantic.ast.expression.literal.ArrayNode
 import com.tambapps.marcel.semantic.ast.expression.literal.BoolConstantNode
 import com.tambapps.marcel.semantic.ast.expression.literal.ByteConstantNode
@@ -75,6 +77,9 @@ class FindNodeByTokenExtension(
   override fun visit(node: ArrayAccessNode) = test(node) ?: node.indexNode.accept(this)
 
   override fun visit(node: ClassReferenceNode) = test(node)
+  override fun visit(node: ConditionalExpressionNode) = test(node.trueExpression)
+    ?: node.falseExpression?.let(this::test)
+    ?: test(node.condition) ?: test(node)
 
   override fun visit(node: DupNode) = node.expression.accept(this)
 
@@ -105,6 +110,8 @@ class FindNodeByTokenExtension(
   override fun visit(node: ThisConstructorCallNode) = testExprs(node.arguments)?: test(node)
 
   override fun visit(node: ThisReferenceNode) = test(node)
+
+  override fun visit(node: YieldExpression) = test(node.expression) ?: test(node)
 
   override fun visit(node: ArrayNode) = testExprs(node.elements)?: test(node)
 

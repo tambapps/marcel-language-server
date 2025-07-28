@@ -2,6 +2,7 @@ package com.tambapps.marcel.lsp.lang.visitor
 
 import com.tambapps.marcel.semantic.ast.expression.ArrayAccessNode
 import com.tambapps.marcel.semantic.ast.expression.ClassReferenceNode
+import com.tambapps.marcel.semantic.ast.expression.ConditionalExpressionNode
 import com.tambapps.marcel.semantic.ast.expression.DupNode
 import com.tambapps.marcel.semantic.ast.expression.ExprErrorNode
 import com.tambapps.marcel.semantic.ast.expression.ExpressionNodeVisitor
@@ -16,6 +17,7 @@ import com.tambapps.marcel.semantic.ast.expression.SuperReferenceNode
 import com.tambapps.marcel.semantic.ast.expression.TernaryNode
 import com.tambapps.marcel.semantic.ast.expression.ThisConstructorCallNode
 import com.tambapps.marcel.semantic.ast.expression.ThisReferenceNode
+import com.tambapps.marcel.semantic.ast.expression.YieldExpression
 import com.tambapps.marcel.semantic.ast.expression.literal.ArrayNode
 import com.tambapps.marcel.semantic.ast.expression.literal.BoolConstantNode
 import com.tambapps.marcel.semantic.ast.expression.literal.ByteConstantNode
@@ -304,6 +306,14 @@ class GenerateHoverVisitor: ExpressionNodeVisitor<MarkupContent?> {
   }
 
   override fun visit(node: VariableAssignmentNode): MarkupContent? {
+    return null
+  }
+
+  override fun visit(node: ConditionalExpressionNode): MarkupContent? {
+    return null
+  }
+
+  override fun visit(node: YieldExpression): MarkupContent? {
     return null
   }
 
