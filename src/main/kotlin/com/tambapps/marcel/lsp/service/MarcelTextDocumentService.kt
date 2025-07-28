@@ -4,6 +4,13 @@ import com.tambapps.marcel.lsp.lang.MarcelCodeHighlighter
 import com.tambapps.marcel.lsp.lang.MarcelSemanticCompiler
 import com.tambapps.marcel.lsp.lang.SemanticResult
 import com.tambapps.marcel.lsp.lang.visitor.findByPosition
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.future.future
+import kotlinx.coroutines.launch
 import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.CompletionItemKind
 import org.eclipse.lsp4j.CompletionList
@@ -33,11 +40,15 @@ class MarcelTextDocumentService(
 
   private val semanticResults = ConcurrentHashMap<String, CompletableFuture<SemanticResult>>()
   private val marcelLangService = MarcelLangService()
+  // SupervisorJob allows coroutines created to be independent of each other when failing
+  private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
   var languageClient: LanguageClient? = null
 
   override fun semanticTokensFull(params: SemanticTokensParams): CompletableFuture<SemanticTokens> {
     val semanticResultFuture = semanticResults[params.textDocument?.uri] ?: return CompletableFuture.completedFuture(SemanticTokens(listOf()))
-    return semanticResultFuture.thenApply { semanticResult -> SemanticTokens(highlighter.computeHighlight(semanticResult)) }
+    return scope.future(CoroutineName("semanticTokensFull for ${params.textDocument?.uri}")) {
+      SemanticTokens(highlighter.computeHighlight(semanticResultFuture.await()))
+    }
   }
 
   override fun hover(params: HoverParams): CompletableFuture<Hover?> {
@@ -47,15 +58,15 @@ class MarcelTextDocumentService(
       return CompletableFuture.completedFuture(null)
     }
     val semanticResultFuture = semanticResults[uri] ?: return CompletableFuture.completedFuture(null)
-
-    return semanticResultFuture.thenApply { semanticResult ->
-      val classes = semanticResult.ast?.classes ?: return@thenApply null
+    return scope.future(CoroutineName("hover for ${params.textDocument?.uri}")) {
+      val semanticResult = semanticResultFuture.await()
+      val classes = semanticResult.ast?.classes ?: return@future null
       val nodeOfInterest = classes.firstNotNullOfOrNull { classNode ->
         classNode.methods.firstNotNullOfOrNull {
             methodNode -> methodNode.blockStatement.findByPosition(position.line, position.character)
         }
-      } ?: return@thenApply null
-      val markupContent = marcelLangService.generateHover(nodeOfInterest) ?: return@thenApply null
+      } ?: return@future null
+      val markupContent = marcelLangService.generateHover(nodeOfInterest) ?: return@future null
       Hover(markupContent, Range(position, Position(position.line, nodeOfInterest.token.end)))
     }
   }
@@ -66,21 +77,20 @@ class MarcelTextDocumentService(
     if (uri == null || position == null) {
       return CompletableFuture.completedFuture(Either.forLeft(emptyList()))
     }
-    val semanticResultFuture = semanticResults[uri] ?: return CompletableFuture.completedFuture(Either.forLeft(emptyList()))
-
-    return semanticResultFuture.thenApply { semanticResult ->
+    // val semanticResultFuture = semanticResults[uri] ?: return CompletableFuture.completedFuture(Either.forLeft(emptyList()))
+    return scope.future(CoroutineName("completion for $uri")) {
       // TODO add real completion items based on semanticResult
-
-      val completionItems = mutableListOf<CompletionItem>()
-      completionItems.add(CompletionItem().apply {
-        insertText = "sayHello() {\n    print(\"hello\")\n}"
-        label = "sayHello()"
-        filterText
-        kind = CompletionItemKind.Snippet
-        insertTextFormat = InsertTextFormat.Snippet
-        detail = "sayHello()\n this will say hello to the people"
+      // val semanticResult = semanticResultFuture.await()
+      Either.forLeft(buildList {
+        add(CompletionItem().apply {
+          insertText = "sayHello() {\n    print(\"hello\")\n}"
+          label = "sayHello()"
+          filterText
+          kind = CompletionItemKind.Snippet
+          insertTextFormat = InsertTextFormat.Snippet
+          detail = "sayHello()\n this will say hello to the people"
+        })
       })
-      return@thenApply Either.forLeft(completionItems);
     }
   }
 
@@ -102,11 +112,12 @@ class MarcelTextDocumentService(
   }
 
   private fun updateSemanticResults(uri: String, text: String) {
-    val future = CompletableFuture.supplyAsync { marcelSemanticCompiler.apply(text) }
+    val future = scope.future { marcelSemanticCompiler.apply(text) }
     semanticResults[uri] = future
     val languageClient = this.languageClient
     if (languageClient != null) {
-      future.thenAcceptAsync { semanticResult ->
+      scope.launch(CoroutineName("publish diagnostics for $uri")) {
+        val semanticResult = future.await()
         val diagnostics = marcelLangService.generateDiagnostic(semanticResult)
         languageClient.publishDiagnostics(PublishDiagnosticsParams(uri, diagnostics))
       }
